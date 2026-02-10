@@ -122,4 +122,27 @@ class CategoryController extends Controller
             'message' => 'Categoría eliminada exitosamente'
         ]);
     }
+
+    /**
+     * GET /api/categories/{id}/exercises
+     * Lista los ejercicios de una categoría específica
+     */
+    public function exercises($id)
+    {
+        $category = Category::find($id);
+
+        if (!$category) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Categoría no encontrada'
+            ], 404);
+        }
+
+        $exercises = $category->exercises;
+
+        return response()->json([
+            'success' => true,
+            'data' => $exercises
+        ]);
+    }
 }
