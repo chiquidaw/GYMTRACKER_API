@@ -3,9 +3,13 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\AddExerciseToRoutineRequest;
+use App\Http\Requests\StoreRoutineRequest;
+use App\Http\Requests\UpdateRoutineRequest;
 use App\Models\Routine;
 use App\Http\Resources\RoutineResource;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class RoutineController extends Controller
 {
@@ -58,24 +62,48 @@ class RoutineController extends Controller
         ]);
     }
 
-    // ... resto de métodos igual pero cambiando las respuestas:
-    
-    public function store(Request $request)
+    public function store(StoreRoutineRequest $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-        ]);
+        $validated = $request->validated();
+        
+        try {
+            DB::beginTransaction();
 
-        $routine = Routine::create($validated);
+            $routine = Routine::create([
+                'name' => $validated['name'],
+                'description' => $validated['description'] ?? null,
+            ]);
 
-        return (new RoutineResource($routine))
-            ->additional(['message' => 'Rutina creada exitosamente'])
-            ->response()
-            ->setStatusCode(201);
+            foreach ($validated['exercises'] as $exerciseData) {
+                $routine->exercises()->attach($exerciseData['exercise_id'], [
+                    'sequence' => $exerciseData['sequence'],
+                    'target_sets' => $exerciseData['target_sets'],
+                    'target_reps' => $exerciseData['target_reps'],
+                    'rest_seconds' => $exerciseData['rest_seconds'],
+                ]);
+            }
+
+            DB::commit();
+            
+            $routine->load('exercises.category');
+
+            return (new RoutineResource($routine))
+                ->additional(['message' => 'Rutina creada exitosamente'])
+                ->response()
+                ->setStatusCode(201);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al crear la rutina',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
-    public function update(Request $request, $id)
+    public function update(UpdateRoutineRequest $request, $id)
     {
         $routine = Routine::find($id);
 
@@ -116,7 +144,7 @@ class RoutineController extends Controller
         ]);
     }
 
-    public function addExercise(Request $request, $id)
+    public function addExercise(AddExerciseToRoutineRequest $request, $id)
     {
         $routine = Routine::find($id);
 
