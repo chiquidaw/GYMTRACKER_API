@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Tester - Sistema de Rutinas Deportivas</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+        }
+
+        .token-section {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #ffc107;
+        }
+
+        .token-section input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-family: monospace;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .endpoint-section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .endpoint-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .endpoint {
+            background: #f8f9fa;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .endpoint-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .endpoint-title {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .method {
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            color: white;
+        }
+
+        .method.get { background: #28a745; }
+        .method.post { background: #007bff; }
+        .method.put { background: #ffc107; color: #333; }
+        .method.delete { background: #dc3545; }
+
+        .endpoint-url {
+            font-family: monospace;
+            color: #666;
+            font-size: 13px;
+            margin-bottom: 10px;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            margin-bottom: 10px;
+            min-height: 100px;
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        .input-group {
+            margin-bottom: 10px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #5568d3;
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .response {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .response.success {
+            border-left: 4px solid #28a745;
+        }
+
+        .response.error {
+            border-left: 4px solid #dc3545;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .badge.public {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge.protected {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 15px;
+            height: 15px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .response-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #444;
+        }
+
+        .status-code {
+            font-weight: 600;
+        }
+
+        .status-200 { color: #4ade80; }
+        .status-201 { color: #4ade80; }
+        .status-400 { color: #fb923c; }
+        .status-401 { color: #fb923c; }
+        .status-404 { color: #fb923c; }
+        .status-422 { color: #fb923c; }
+        .status-500 { color: #ef4444; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏋️ API Tester - Sistema de Rutinas Deportivas</h1>
+            <p>Prueba todos los endpoints de tu API de forma visual</p>
+        </div>
+
+        <div class="token-section">
+            <strong>🔑 Token de Autenticación:</strong>
+            <input type="text" id="globalToken" placeholder="Pega aquí tu token después de hacer login...">
+            <small style="display: block; margin-top: 5px; color: #856404;">
+                💡 Primero haz login o registro, copia el token de la respuesta y pégalo aquí arriba para usar las rutas protegidas.
+            </small>
+        </div>
+
+        <div class="main-grid">
+            <!-- AUTENTICACIÓN -->
+            <div class="endpoint-section">
+                <h2>🔐 Autenticación</h2>
+
+                <!-- REGISTER -->
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="endpoint-title">Registro</span>
+                        <div>
+                            <span class="method post">POST</span>
+                            <span class="badge public">Público</span>
+                        </div>
+                    </div>
+                    <div class="endpoint-url">/api/register</div>
+                    <div class="input-group">
+                        <label>Nombre:</label>
+                        <input type="text" id="register-name" value="Juan Pérez">
+                    </div>
+                    <div class="input-group">
+                        <label>Email:</label>
+                        <input type="text" id="register-email" value="juan@example.com">
+                    </div>
+                    <div class="input-group">
+                        <label>Password:</label>
+                        <input type="text" id="register-password" value="password123">
+                    </div>
+                    <div class="input-group">
+                        <label>Confirmar Password:</label>
+                        <input type="text" id="register-password-confirmation" value="password123">
+                    </div>
+                    <button onclick="register()">Registrar Usuario</button>
+                    <div id="register-response"></div>
+                </div>
+
+                <!-- LOGIN -->
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="endpoint-title">Login</span>
+                        <div>
+                            <span class="method post">POST</span>
+                            <span class="badge public">Público</span>
+                        </div>
+                    </div>
+                    <div class="endpoint-url">/api/login</div>
+                    <div class="input-group">
+                        <label>Email:</label>
+                        <input type="text" id="login-email" value="juan@example.com">
+                    </div>
+                    <div class="input-group">
+                        <label>Password:</label>
+                        <input type="text" id="login-password" value="password123">
+                    </div>
+                    <button onclick="login()">Iniciar Sesión</button>
+                    <div id="login-response"></div>
+                </div>
+
+                <!-- LOGOUT -->
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="endpoint-title">Logout</span>
+                        <div>
+                            <span class="method post">POST</span>
+                            <span class="badge protected">Token</span>
+                        </div>
+                    </div>
+                    <div class="endpoint-url">/api/logout</div>
+                    <button onclick="logout()">Cerrar Sesión</button>
+                    <div id="logout-response"></div>
+                </div>
+            </div>
+
+            <!-- CATEGORÍAS -->
+            <div class="endpoint-section">
+                <h2>📁 Categorías</h2>
+
+                <!-- GET CATEGORIES -->
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="endpoint-title">Listar Categorías</span>
+                        <div>
+                            <span class="method get">GET</span>
+                            <span class="badge public">Público</span>
+                        </div>
+                    </div>
+                    <div class="endpoint-url">/api/categories</div>
+                    <button onclick="getCategories()">Obtener Categorías</button>
+                    <div id="get-categories-response"></div>
+                </div>
+
+                <!-- GET CATEGORY BY ID -->
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="endpoint-title">Ver Categoría</span>
+                        <div>
+                            <span class="method get">GET</span>
+                            <span class="badge public">Público</span>
+                        </div>
+                    </div>
+                    <div class="endpoint-url">/api/categories/{id}</div>
+                    <div class="input-group">
+                        <label>ID de Categoría:</label>
+                        <input type="number" id="get-category-id" value="1">
+                    </div>
+                    <button onclick="getCategory()">Ver Categoría</button>
+                    <div id="get-category-response"></div>
+                </div>
+
+                <!-- GET CATEGORY EXERCISES -->
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="endpoint-title">Ejercicios de Categoría</span>
+                        <div>
+                            <span class="method get">GET</span>
+                            <span class="badge public">Público</span>
+                        </div>
+                    </div>
+                    <div class="endpoint-url">/api/categories/{id}/exercises</div>
+                    <div class="input-group">
+                        <label>ID de Categoría:</label>
+                        <input type="number" id="get-category-exercises-id" value="1">
+                    </div>
+                    <button onclick="getCategoryExercises()">Ver Ejercicios</button>
+                    <div id="get-category-exercises-response"></div>
+                </div>
+
+                <!-- CREATE CATEGORY -->
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="endpoint-title">Crear Categoría</span>
+                        <div>
+                            <span class="method post">POST</span>
+                            <span class="badge protected">Token</span>
+                        </div>
+                    </div>
+                    <div class="endpoint-url">/api/categories</div>
+                    <div class="input-group">
+                        <label>Nombre:</label>
+                        <input type="text" id="create-category-name" value="Funcional">
+                    </div>
+                    <div class="input-group">
+                        <label>Icon Path:</label>
+                        <input type="text" id="create-category-icon" value="/icons/functional.svg">
+                    </div>
+                    <button onclick="createCategory()">Crear Categoría</button>
+                    <div id="create-category-response"></div>
+                </div>
+            </div>
+
+            <!-- EJERCICIOS -->
+            <div class="endpoint-section">
+                <h2>💪 Ejercicios</h2>
+
+                <!-- GET EXERCISES -->
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="endpoint-title">Listar Ejercicios</span>
+                        <div>
+                            <span class="method get">GET</span>
+                            <span class="badge public">Público</span>
+                        </div>
+                    </div>
+                    <div class="endpoint-url">/api/exercises</div>
+                    <button onclick="getExercises()">Obtener Ejercicios</button>
+                    <div id="get-exercises-response"></div>
+                </div>
+
+                <!-- GET EXERCISE BY ID -->
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="endpoint-title">Ver Ejercicio</span>
+                        <div>
+                            <span class="method get">GET</span>
+                            <span class="badge public">Público</span>
+                        </div>
+                    </div>
+                    <div class="endpoint-url">/api/exercises/{id}</div>
+                    <div class="input-group">
+                        <label>ID de Ejercicio:</label>
+                        <input type="number" id="get-exercise-id" value="1">
+                    </div>
+                    <button onclick="getExercise()">Ver Ejercicio</button>
+                    <div id="get-exercise-response"></div>
+                </div>
+
+                <!-- CREATE EXERCISE -->
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="endpoint-title">Crear Ejercicio</span>
+                        <div>
+                            <span class="method post">POST</span>
+                            <span class="badge protected">Token</span>
+                        </div>
+                    </div>
+                    <div class="endpoint-url">/api/exercises</div>
+                    <div class="input-group">
+                        <label>ID de Categoría:</label>
+                        <input type="number" id="create-exercise-category" value="1">
+                    </div>
+                    <div class="input-group">
+                        <label>Nombre:</label>
+                        <input type="text" id="create-exercise-name" value="Press Inclinado con Mancuernas">
+                    </div>
+                    <div class="input-group">
+                        <label>Instrucciones:</label>
+                        <textarea id="create-exercise-instruction">En banco inclinado a 45 grados, empujar las mancuernas hacia arriba desde el pecho hasta extensión completa de brazos.</textarea>
+                    </div>
+                    <button onclick="createExercise()">Crear Ejercicio</button>
+                    <div id="create-exercise-response"></div>
+                </div>
+            </div>
+
+            <!-- RUTINAS -->
+            <div class="endpoint-section">
+                <h2>🏋️ Rutinas</h2>
+
+                <!-- GET ROUTINES -->
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="endpoint-title">Listar Rutinas</span>
+                        <div>
+                            <span class="method get">GET</span>
+                            <span class="badge public">Público</span>
+                        </div>
+                    </div>
+                    <div class="endpoint-url">/api/routines</div>
+                    <button onclick="getRoutines()">Obtener Rutinas</button>
+                    <div id="get-routines-response"></div>
+                </div>
+
+                <!-- GET ROUTINE BY ID -->
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="endpoint-title">Ver Rutina</span>
+                        <div>
+                            <span class="method get">GET</span>
+                            <span class="badge public">Público</span>
+                        </div>
+                    </div>
+                    <div class="endpoint-url">/api/routines/{id}</div>
+                    <div class="input-group">
+                        <label>ID de Rutina:</label>
+                        <input type="number" id="get-routine-id" value="1">
+                    </div>
+                    <button onclick="getRoutine()">Ver Rutina</button>
+                    <div id="get-routine-response"></div>
+                </div>
+
+                <!-- GET ROUTINE EXERCISES -->
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="endpoint-title">Ejercicios de Rutina</span>
+                        <div>
+                            <span class="method get">GET</span>
+                            <span class="badge public">Público</span>
+                        </div>
+                    </div>
+                    <div class="endpoint-url">/api/routines/{id}/exercises</div>
+                    <div class="input-group">
+                        <label>ID de Rutina:</label>
+                        <input type="number" id="get-routine-exercises-id" value="1">
+                    </div>
+                    <button onclick="getRoutineExercises()">Ver Ejercicios</button>
+                    <div id="get-routine-exercises-response"></div>
+                </div>
+
+                <!-- CREATE ROUTINE -->
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="endpoint-title">Crear Rutina</span>
+                        <div>
+                            <span class="method post">POST</span>
+                            <span class="badge protected">Token</span>
+                        </div>
+                    </div>
+                    <div class="endpoint-url">/api/routines</div>
+                    <div class="input-group">
+                        <label>JSON Completo:</label>
+                        <textarea id="create-routine-json">{
+  "name": "Rutina de Pecho y Tríceps",
+  "description": "Enfocada en el desarrollo del pecho y tríceps",
+  "exercises": [
+    {
+      "exercise_id": 1,
+      "sequence": 1,
+      "target_sets": 4,
+      "target_reps": 10,
+      "rest_seconds": 90
+    },
+    {
+      "exercise_id": 2,
+      "sequence": 2,
+      "target_sets": 3,
+      "target_reps": 15,
+      "rest_seconds": 60
+    }
+  ]
+}</textarea>
+                    </div>
+                    <button onclick="createRoutine()">Crear Rutina</button>
+                    <div id="create-routine-response"></div>
+                </div>
+
+                <!-- ADD EXERCISE TO ROUTINE -->
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="endpoint-title">Añadir Ejercicio</span>
+                        <div>
+                            <span class="method post">POST</span>
+                            <span class="badge protected">Token</span>
+                        </div>
+                    </div>
+                    <div class="endpoint-url">/api/routines/{id}/exercises</div>
+                    <div class="input-group">
+                        <label>ID de Rutina:</label>
+                        <input type="number" id="add-exercise-routine-id" value="1">
+                    </div>
+                    <div class="input-group">
+                        <label>ID de Ejercicio:</label>
+                        <input type="number" id="add-exercise-id" value="5">
+                    </div>
+                    <div class="input-group">
+                        <label>Series:</label>
+                        <input type="number" id="add-exercise-sets" value="3">
+                    </div>
+                    <div class="input-group">
+                        <label>Repeticiones:</label>
+                        <input type="number" id="add-exercise-reps" value="12">
+                    </div>
+                    <div class="input-group">
+                        <label>Descanso (seg):</label>
+                        <input type="number" id="add-exercise-rest" value="60">
+                    </div>
+                    <button onclick="addExerciseToRoutine()">Añadir Ejercicio</button>
+                    <div id="add-exercise-response"></div>
+                </div>
+            </div>
+
+            <!-- MIS RUTINAS -->
+            <div class="endpoint-section">
+                <h2>👤 Mis Rutinas</h2>
+
+                <!-- GET MY ROUTINES -->
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="endpoint-title">Mis Rutinas Suscritas</span>
+                        <div>
+                            <span class="method get">GET</span>
+                            <span class="badge protected">Token</span>
+                        </div>
+                    </div>
+                    <div class="endpoint-url">/api/my-routines</div>
+                    <button onclick="getMyRoutines()">Ver Mis Rutinas</button>
+                    <div id="get-my-routines-response"></div>
+                </div>
+
+                <!-- SUBSCRIBE TO ROUTINE -->
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="endpoint-title">Suscribirse a Rutina</span>
+                        <div>
+                            <span class="method post">POST</span>
+                            <span class="badge protected">Token</span>
+                        </div>
+                    </div>
+                    <div class="endpoint-url">/api/my-routines</div>
+                    <div class="input-group">
+                        <label>ID de Rutina:</label>
+                        <input type="number" id="subscribe-routine-id" value="1">
+                    </div>
+                    <button onclick="subscribeToRoutine()">Suscribirme</button>
+                    <div id="subscribe-response"></div>
+                </div>
+
+                <!-- UNSUBSCRIBE FROM ROUTINE -->
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="endpoint-title">Desuscribirse</span>
+                        <div>
+                            <span class="method delete">DELETE</span>
+                            <span class="badge protected">Token</span>
+                        </div>
+                    </div>
+                    <div class="endpoint-url">/api/my-routines/{id}</div>
+                    <div class="input-group">
+                        <label>ID de Rutina:</label>
+                        <input type="number" id="unsubscribe-routine-id" value="1">
+                    </div>
+                    <button onclick="unsubscribeFromRoutine()">Desuscribirme</button>
+                    <div id="unsubscribe-response"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost/api';
+
+        function getToken() {
+            return document.getElementById('globalToken').value.trim();
+        }
+
+        function showResponse(elementId, data, status) {
+            const element = document.getElementById(elementId);
+            const statusClass = `status-${status}`;
+            const responseClass = status >= 200 && status < 300 ? 'success' : 'error';
+            
+            element.innerHTML = `
+                <div class="response ${responseClass}">
+                    <div class="response-header">
+                        <span>Respuesta:</span>
+                        <span class="status-code ${statusClass}">Status: ${status}</span>
+                    </div>
+                    ${JSON.stringify(data, null, 2)}
+                </div>
+            `;
+        }
+
+        function showLoading(elementId) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = '<div style="text-align: center; padding: 20px;"><div class="loading"></div></div>';
+        }
+
+        async function makeRequest(url, method = 'GET', body = null, useToken = false) {
+            const headers = {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+            };
+
+            if (useToken) {
+                const token = getToken();
+                if (!token) {
+                    alert('⚠️ Necesitas un token. Por favor, haz login primero y pega el token en el campo superior.');
+                    throw new Error('Token required');
+                }
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
+            const options = {
+                method,
+                headers,
+            };
+
+            if (body) {
+                options.body = JSON.stringify(body);
+            }
+
+            const response = await fetch(url, options);
+            const data = await response.json();
+            return { data, status: response.status };
+        }
+
+        // AUTENTICACIÓN
+        async function register() {
+            showLoading('register-response');
+            try {
+                const body = {
+                    name: document.getElementById('register-name').value,
+                    email: document.getElementById('register-email').value,
+                    password: document.getElementById('register-password').value,
+                    password_confirmation: document.getElementById('register-password-confirmation').value,
+                };
+                const { data, status } = await makeRequest(`${API_BASE}/register`, 'POST', body);
+                showResponse('register-response', data, status);
+                
+                if (data.access_token) {
+                    document.getElementById('globalToken').value = data.access_token;
+                    alert('✅ Usuario registrado. Token copiado automáticamente.');
+                }
+            } catch (error) {
+                showResponse('register-response', { error: error.message }, 500);
+            }
+        }
+
+        async function login() {
+            showLoading('login-response');
+            try {
+                const body = {
+                    email: document.getElementById('login-email').value,
+                    password: document.getElementById('login-password').value,
+                };
+                const { data, status } = await makeRequest(`${API_BASE}/login`, 'POST', body);
+                showResponse('login-response', data, status);
+                
+                if (data.access_token) {
+                    document.getElementById('globalToken').value = data.access_token;
+                    alert('✅ Login exitoso. Token copiado automáticamente.');
+                }
+            } catch (error) {
+                showResponse('login-response', { error: error.message }, 500);
+            }
+        }
+
+        async function logout() {
+            showLoading('logout-response');
+            try {
+                const { data, status } = await makeRequest(`${API_BASE}/logout`, 'POST', null, true);
+                showResponse('logout-response', data, status);
+                document.getElementById('globalToken').value = '';
+            } catch (error) {
+                showResponse('logout-response', { error: error.message }, 500);
+            }
+        }
+
+        async function me() {
+            showLoading('me-response');
+            try {
+                const { data, status } = await makeRequest(`${API_BASE}/me`, 'GET', null, true);
+                showResponse('me-response', data, status);
+            } catch (error) {
+                showResponse('me-response', { error: error.message }, 500);
+            }
+        }
+
+        // CATEGORÍAS
+        async function getCategories() {
+            showLoading('get-categories-response');
+            try {
+                const { data, status } = await makeRequest(`${API_BASE}/categories`);
+                showResponse('get-categories-response', data, status);
+            } catch (error) {
+                showResponse('get-categories-response', { error: error.message }, 500);
+            }
+        }
+
+        async function getCategory() {
+            showLoading('get-category-response');
+            try {
+                const id = document.getElementById('get-category-id').value;
+                const { data, status } = await makeRequest(`${API_BASE}/categories/${id}`);
+                showResponse('get-category-response', data, status);
+            } catch (error) {
+                showResponse('get-category-response', { error: error.message }, 500);
+            }
+        }
+
+        async function getCategoryExercises() {
+            showLoading('get-category-exercises-response');
+            try {
+                const id = document.getElementById('get-category-exercises-id').value;
+                const { data, status } = await makeRequest(`${API_BASE}/categories/${id}/exercises`);
+                showResponse('get-category-exercises-response', data, status);
+            } catch (error) {
+                showResponse('get-category-exercises-response', { error: error.message }, 500);
+            }
+        }
+
+        async function createCategory() {
+            showLoading('create-category-response');
+            try {
+                const body = {
+                    name: document.getElementById('create-category-name').value,
+                    icon_path: document.getElementById('create-category-icon').value,
+                };
+                const { data, status } = await makeRequest(`${API_BASE}/categories`, 'POST', body, true);
+                showResponse('create-category-response', data, status);
+            } catch (error) {
+                showResponse('create-category-response', { error: error.message }, 500);
+            }
+        }
+
+        // EJERCICIOS
+        async function getExercises() {
+            showLoading('get-exercises-response');
+            try {
+                const { data, status } = await makeRequest(`${API_BASE}/exercises`);
+                showResponse('get-exercises-response', data, status);
+            } catch (error) {
+                showResponse('get-exercises-response', { error: error.message }, 500);
+            }
+        }
+
+        async function getExercise() {
+            showLoading('get-exercise-response');
+            try {
+                const id = document.getElementById('get-exercise-id').value;
+                const { data, status } = await makeRequest(`${API_BASE}/exercises/${id}`);
+                showResponse('get-exercise-response', data, status);
+            } catch (error) {
+                showResponse('get-exercise-response', { error: error.message }, 500);
+            }
+        }
+
+        async function createExercise() {
+            showLoading('create-exercise-response');
+            try {
+                const body = {
+                    category_id: parseInt(document.getElementById('create-exercise-category').value),
+                    name: document.getElementById('create-exercise-name').value,
+                    instruction: document.getElementById('create-exercise-instruction').value,
+                };
+                const { data, status } = await makeRequest(`${API_BASE}/exercises`, 'POST', body, true);
+                showResponse('create-exercise-response', data, status);
+            } catch (error) {
+                showResponse('create-exercise-response', { error: error.message }, 500);
+            }
+        }
+
+        // RUTINAS
+        async function getRoutines() {
+            showLoading('get-routines-response');
+            try {
+                const { data, status } = await makeRequest(`${API_BASE}/routines`);
+                showResponse('get-routines-response', data, status);
+            } catch (error) {
+                showResponse('get-routines-response', { error: error.message }, 500);
+            }
+        }
+
+        async function getRoutine() {
+            showLoading('get-routine-response');
+            try {
+                const id = document.getElementById('get-routine-id').value;
+                const { data, status } = await makeRequest(`${API_BASE}/routines/${id}`);
+                showResponse('get-routine-response', data, status);
+            } catch (error) {
+                showResponse('get-routine-response', { error: error.message }, 500);
+            }
+        }
+
+        async function getRoutineExercises() {
+            showLoading('get-routine-exercises-response');
+            try {
+                const id = document.getElementById('get-routine-exercises-id').value;
+                const { data, status } = await makeRequest(`${API_BASE}/routines/${id}/exercises`);
+                showResponse('get-routine-exercises-response', data, status);
+            } catch (error) {
+                showResponse('get-routine-exercises-response', { error: error.message }, 500);
+            }
+        }
+
+        async function createRoutine() {
+            showLoading('create-routine-response');
+            try {
+                const body = JSON.parse(document.getElementById('create-routine-json').value);
+                const { data, status } = await makeRequest(`${API_BASE}/routines`, 'POST', body, true);
+                showResponse('create-routine-response', data, status);
+            } catch (error) {
+                showResponse('create-routine-response', { error: error.message }, 500);
+            }
+        }
+
+        async function addExerciseToRoutine() {
+            showLoading('add-exercise-response');
+            try {
+                const routineId = document.getElementById('add-exercise-routine-id').value;
+                const body = {
+                    exercise_id: parseInt(document.getElementById('add-exercise-id').value),
+                    sets: parseInt(document.getElementById('add-exercise-sets').value),
+                    reps: parseInt(document.getElementById('add-exercise-reps').value),
+                    rest_seconds: parseInt(document.getElementById('add-exercise-rest').value),
+                };
+                const { data, status } = await makeRequest(`${API_BASE}/routines/${routineId}/exercises`, 'POST', body, true);
+                showResponse('add-exercise-response', data, status);
+            } catch (error) {
+                showResponse('add-exercise-response', { error: error.message }, 500);
+            }
+        }
+
+        // MIS RUTINAS
+        async function getMyRoutines() {
+            showLoading('get-my-routines-response');
+            try {
+                const { data, status } = await makeRequest(`${API_BASE}/my-routines`, 'GET', null, true);
+                showResponse('get-my-routines-response', data, status);
+            } catch (error) {
+                showResponse('get-my-routines-response', { error: error.message }, 500);
+            }
+        }
+
+        async function subscribeToRoutine() {
+            showLoading('subscribe-response');
+            try {
+                const body = {
+                    routine_id: parseInt(document.getElementById('subscribe-routine-id').value),
+                };
+                const { data, status } = await makeRequest(`${API_BASE}/my-routines`, 'POST', body, true);
+                showResponse('subscribe-response', data, status);
+            } catch (error) {
+                showResponse('subscribe-response', { error: error.message }, 500);
+            }
+        }
+
+        async function unsubscribeFromRoutine() {
+            showLoading('unsubscribe-response');
+            try {
+                const id = document.getElementById('unsubscribe-routine-id').value;
+                const { data, status } = await makeRequest(`${API_BASE}/my-routines/${id}`, 'DELETE', null, true);
+                showResponse('unsubscribe-response', data, status);
+            } catch (error) {
+                showResponse('unsubscribe-response', { error: error.message }, 500);
+            }
+        }
+    </script>
+</body>
+</html>
